@@ -1,22 +1,25 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import appConfig from './modules/@common/config/app.config';
+import typeormConfig from './modules/@common/config/typeorm.config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { EventModule } from './event/event.module';
-import { ProductModule } from './product/product.module';
-import { ServiceModule } from './service/service.module';
-import { QualificationModule } from './qualification/qualification.module';
-import { ProfileModule } from './profile/profile.module';
-import { RoleModule } from './role/role.module';
-import { UserController } from './user/user.controller';
-import { UserModule } from './user/user.module';
-import { PalceModule } from './palce/palce.module';
-import { TypeEventModule } from './type-event/type-event.module';
-import { DatabaseModule } from './modules/database/database.module';
-
 
 @Module({
-  imports: [UserModule, RoleModule, ProfileModule, QualificationModule, ServiceModule, ProductModule, EventModule, PalceModule, TypeEventModule, DatabaseModule],
-  controllers: [AppController, UserController],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+      load: [appConfig, typeormConfig],
+    }),
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) =>
+        configService.get('typeorm'),
+    }),
+  ],
+  controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
